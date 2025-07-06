@@ -1,6 +1,8 @@
 # 📡 WiFi Access Points Map
 
 ## Install
+Requirements: `uv` installed locally. See https://docs.astral.sh/uv/
+
 ```bash
 git clone git@github.com:openprivacy/wifi_map.git
 cd wifi_map

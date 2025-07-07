@@ -31,7 +31,7 @@ if uploaded_file is not None:
     for _, row in wifi_df.iterrows():
         folium.Marker(
             location=[row['CurrentLatitude'], row['CurrentLongitude']],
-            popup=f"SSID: {row.get('SSID', 'N/A')}<br>BSSID: {row.get('MAC', 'N/A')}",
+            popup=f"SSID: {row.get('SSID', 'N/A')}<br>RSSI: {row.get('RSSI', 'N/A')}<br>BSSID: {row.get('MAC', 'N/A')}",
             icon=folium.Icon(color="blue", icon="wifi", prefix="fa")
         ).add_to(marker_cluster)
 

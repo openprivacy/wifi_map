@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 import folium
-from folium.plugins import MarkerCluster
+from folium.plugins import HeatMap, MarkerCluster
 from streamlit_folium import st_folium
 import base64
 import os
@@ -31,6 +31,14 @@ wifi_df = df[df['type'].str.upper() == 'WIFI']
 # Drop rows with missing coordinates (prevents possible errors below)
 wifi_df = wifi_df.dropna(subset=['currentlatitude', 'currentlongitude'])
 
+# UI toggle
+display_option = st.radio(
+    "Select map display mode:",
+    ["Markers", "Heatmap", "Both"],
+    index=2,
+    horizontal=True
+)
+
 # Show number of points
 st.write(f"🛰️ Displaying {len(wifi_df)} WiFi Access Points")
 
@@ -49,26 +57,33 @@ def strength_to_color(dbm_val):
         return "gray"
 
 
-# Create Folium Map
+# Center Map
 midpoint = [wifi_df['currentlatitude'].mean(), wifi_df['currentlongitude'].mean()]
 m = folium.Map(location=midpoint, zoom_start=12)
-marker_cluster = MarkerCluster().add_to(m)
 
-# Add markers
-for _, row in wifi_df.iterrows():
-    color = strength_to_color(row.get('rssi', 'N/A'))
-    folium.Marker(
-        location=[row['currentlatitude'], row['currentlongitude']],
-        popup=(
-            f"SSID: {row.get('ssid', 'N/A')}<br>"
-            f"MAC: {row.get('mac', 'N/A')}<br>"
-            f"Signal: {row.get('rssi', 'N/A')} dBm"
-        ),
-        icon=folium.Icon(color=color, icon="wifi", prefix="fa")
-    ).add_to(marker_cluster)
+# 🔥 Prepare heatmap data
+heat_data = wifi_df[['currentlatitude', 'currentlongitude']].dropna().values.tolist()
+
+# 🗺️ Conditionally add map layers
+if display_option in ["Markers", "Both"]:
+    marker_cluster = MarkerCluster().add_to(m)
+    for _, row in wifi_df.iterrows():
+        color = strength_to_color(row['rssi'])
+        folium.Marker(
+            location=[row['currentlatitude'], row['currentlongitude']],
+            popup=(
+                f"SSID: {row.get('ssid', 'N/A')}<br>"
+                f"BSSID: {row.get('mac', 'N/A')}<br>"
+                f"Signal: {row.get('rssi')} dBm"
+            ),
+            icon=folium.Icon(color=color, icon="wifi", prefix="fa")
+        ).add_to(marker_cluster)
+
+if display_option in ["Heatmap", "Both"]:
+    HeatMap(heat_data, radius=10, blur=15, max_zoom=1).add_to(m)
 
 # Display map in Streamlit
-st_folium(m, width=700, height=500)
+st_data = st_folium(m, width=700, height=500)
 
 
 # 💾 Export to HTML

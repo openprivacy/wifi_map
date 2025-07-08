@@ -50,7 +50,10 @@ def strength_to_color(dbm_val):
 
 
 # Create Folium Map
-midpoint = [wifi_df['currentlatitude'].mean(), wifi_df['currentlongitude'].mean()]
+midpoint = [
+    wifi_df['currentlatitude'].mean(),
+    wifi_df['currentlongitude'].mean()
+]
 m = folium.Map(location=midpoint, zoom_start=12)
 marker_cluster = MarkerCluster().add_to(m)
 
@@ -76,6 +79,9 @@ html_file = "wifi_map_export.html"
 m.save(html_file)
 with open(html_file, "rb") as f:
     b64 = base64.b64encode(f.read()).decode()
-    href = f'<a href="data:text/html;base64,{b64}" download="{html_file}">📥 Download Map as HTML</a>'
+    href = (
+        f'<a href="data:text/html;base64,{b64}" '
+        f'download="{html_file}">📥 Download Map as HTML</a>'
+    )
     st.markdown(href, unsafe_allow_html=True)
 os.remove(html_file)
